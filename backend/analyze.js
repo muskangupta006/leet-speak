@@ -14,7 +14,7 @@ app.use(express.json());
 
 const FEATHERLESS_KEY = process.env.FEATHERLESS_API_KEY;
 const FEATHERLESS_URL = 'https://api.featherless.ai/v1/chat/completions';
-const MODEL = 'meta-llama/Meta-Llama-3.1-70B-Instruct';
+const MODEL = 'meta-llama/Meta-Llama-3.1-8B-Instruct';
 
 function buildPrompt(question, transcript, resume) {
   return `
@@ -82,7 +82,7 @@ app.post('/analyze', async (req, res) => {
           },
         ],
         temperature: 0.2,
-        max_tokens: 1000,
+        max_tokens: 600,
       },
       {
         headers: {

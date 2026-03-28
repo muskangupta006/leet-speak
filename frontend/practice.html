@@ -101,7 +101,7 @@ nav {
   transition: all 0.2s;
   text-decoration: none;
 }
-.back-btn:hover { color: var(--text); border-color: var(--border2); }
+.back-btn:hover { color: var(--text); }
 
 /* PAGE */
 .page {
@@ -337,13 +337,13 @@ nav {
   animation: wave 0.8s ease-in-out infinite;
   min-height: 4px;
 }
-.wave-bar:nth-child(1)  { animation-delay: 0.0s; height: 8px; }
-.wave-bar:nth-child(2)  { animation-delay: 0.1s; height: 16px; }
-.wave-bar:nth-child(3)  { animation-delay: 0.2s; height: 24px; }
-.wave-bar:nth-child(4)  { animation-delay: 0.3s; height: 32px; }
-.wave-bar:nth-child(5)  { animation-delay: 0.2s; height: 20px; }
-.wave-bar:nth-child(6)  { animation-delay: 0.1s; height: 28px; }
-.wave-bar:nth-child(7)  { animation-delay: 0.0s; height: 14px; }
+.wave-bar:nth-child(1)  { animation-delay: 0.0s;  height: 8px; }
+.wave-bar:nth-child(2)  { animation-delay: 0.1s;  height: 16px; }
+.wave-bar:nth-child(3)  { animation-delay: 0.2s;  height: 24px; }
+.wave-bar:nth-child(4)  { animation-delay: 0.3s;  height: 32px; }
+.wave-bar:nth-child(5)  { animation-delay: 0.2s;  height: 20px; }
+.wave-bar:nth-child(6)  { animation-delay: 0.1s;  height: 28px; }
+.wave-bar:nth-child(7)  { animation-delay: 0.0s;  height: 14px; }
 .wave-bar:nth-child(8)  { animation-delay: 0.15s; height: 22px; }
 .wave-bar:nth-child(9)  { animation-delay: 0.25s; height: 10px; }
 .wave-bar:nth-child(10) { animation-delay: 0.05s; height: 18px; }
@@ -403,11 +403,13 @@ audio {
 }
 .rerecord-btn:hover { color: var(--text); border-color: var(--accent); }
 
-/* SUBMIT */
-.submit-section {
+/* ACTION BUTTONS */
+.action-section {
   display: none;
+  flex-direction: column;
+  gap: 12px;
 }
-.submit-section.visible { display: block; }
+.action-section.visible { display: flex; }
 
 .submit-btn {
   width: 100%;
@@ -430,19 +432,19 @@ audio {
 .submit-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 .submit-btn:active { transform: translateY(0); }
 .submit-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
   filter: none;
 }
 
-.submit-hint {
+.status-hint {
   text-align: center;
   font-size: 12px;
   color: var(--muted2);
-  margin-top: 10px;
   font-family: 'DM Mono', monospace;
 }
+.status-hint.error { color: var(--coral); }
 
 /* NO MIC */
 .no-mic {
@@ -499,7 +501,7 @@ audio {
     </div>
   </div>
 
-  <!-- STAR FRAMEWORK HINT -->
+  <!-- STAR HINT -->
   <div class="star-hint">
     <div class="star-item">
       <div class="star-letter">S</div>
@@ -526,7 +528,6 @@ audio {
   <!-- RECORDER -->
   <div class="recorder-card">
 
-    <!-- Timer ring -->
     <div class="timer-wrap">
       <svg class="timer-svg" viewBox="0 0 120 120">
         <circle class="timer-track" cx="60" cy="60" r="52"/>
@@ -538,7 +539,6 @@ audio {
       </div>
     </div>
 
-    <!-- Waveform -->
     <div class="waveform" id="waveform">
       <div class="wave-bar"></div>
       <div class="wave-bar"></div>
@@ -552,21 +552,17 @@ audio {
       <div class="wave-bar"></div>
     </div>
 
-    <!-- Record button -->
     <button class="record-btn" id="record-btn" onclick="toggleRecording()">
       <div class="record-dot"></div>
       <span id="record-label">Start Recording</span>
     </button>
 
-    <!-- Status -->
     <div class="recorder-status" id="recorder-status">Press record when you're ready</div>
 
-    <!-- No mic error -->
     <div class="no-mic" id="no-mic">
       Microphone access is required. Please allow mic access and refresh the page.
     </div>
 
-    <!-- Playback -->
     <div class="playback-section" id="playback-section">
       <div class="playback-label">Your recording</div>
       <div class="playback-row">
@@ -582,22 +578,22 @@ audio {
     </div>
   </div>
 
-  <!-- SUBMIT -->
-  <div class="submit-section" id="submit-section">
-    <button class="submit-btn" onclick="submitAnswer()">
+  <!-- SUBMIT (shows after recording) -->
+  <div class="action-section" id="action-section">
+    <button class="submit-btn" id="submit-btn" onclick="submitAnswer()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <path d="M2 8h12M9 3l5 5-5 5"/>
       </svg>
       Submit for AI Feedback
     </button>
-    <div class="submit-hint">AI grading coming soon</div>
+    <div class="status-hint" id="status-hint">Transcribes your answer and runs STAR analysis</div>
   </div>
 
 </div>
 
 <script>
 const TOTAL_SECS = 60;
-const CIRCUMFERENCE = 2 * Math.PI * 52; // 326.56
+const CIRCUMFERENCE = 2 * Math.PI * 52;
 
 let mediaRecorder = null;
 let audioChunks = [];
@@ -605,6 +601,7 @@ let timerInterval = null;
 let secondsLeft = TOTAL_SECS;
 let isRecording = false;
 let hasRecording = false;
+let latestTranscript = '';
 
 const CAT_LABELS = {
   leadership: 'Leadership', teamwork: 'Teamwork',
@@ -614,7 +611,7 @@ const CAT_LABELS = {
   achievement: 'Achievement', failure: 'Failure & Growth'
 };
 
-// ── Load question from localStorage ─────────────────────────────────────────
+// ── Load question ─────────────────────────────────────────────────────────────
 function loadQuestion() {
   try {
     const q = JSON.parse(localStorage.getItem('selectedQuestion'));
@@ -623,20 +620,17 @@ function loadQuestion() {
       return;
     }
     document.getElementById('question-text').textContent = q.text;
-    const catEl = document.getElementById('question-cat');
-    catEl.textContent = CAT_LABELS[q.cat] || q.cat;
+    document.getElementById('question-cat').textContent = CAT_LABELS[q.cat] || q.cat;
   } catch (e) {
     document.getElementById('question-text').textContent = 'Could not load question.';
   }
 }
 
-// ── Timer ────────────────────────────────────────────────────────────────────
+// ── Timer ─────────────────────────────────────────────────────────────────────
 function updateTimer(secs) {
   document.getElementById('timer-num').textContent = secs;
   const ring = document.getElementById('timer-ring');
-  const fraction = secs / TOTAL_SECS;
-  ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
-
+  ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - secs / TOTAL_SECS);
   ring.classList.remove('warning', 'danger');
   if (secs <= 10) ring.classList.add('danger');
   else if (secs <= 20) ring.classList.add('warning');
@@ -652,25 +646,18 @@ function startTimer() {
   }, 1000);
 }
 
-function stopTimer() {
-  clearInterval(timerInterval);
-  timerInterval = null;
-}
+function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
 
 function resetTimer() {
   stopTimer();
   secondsLeft = TOTAL_SECS;
   updateTimer(TOTAL_SECS);
-  const ring = document.getElementById('timer-ring');
-  ring.classList.remove('warning', 'danger');
+  document.getElementById('timer-ring').classList.remove('warning', 'danger');
 }
 
+// ── Recording ─────────────────────────────────────────────────────────────────
 async function toggleRecording() {
-  if (isRecording) {
-    stopRecording();
-  } else {
-    startRecording();
-  }
+  isRecording ? stopRecording() : startRecording();
 }
 
 async function startRecording() {
@@ -685,9 +672,8 @@ async function startRecording() {
 
     mediaRecorder.onstop = () => {
       const blob = new Blob(audioChunks, { type: 'audio/webm' });
-      window.lastAudioBlob = blob; // ← ADD THIS LINE
-      const url = URL.createObjectURL(blob);
-      document.getElementById('audio-playback').src = url;
+      window.lastAudioBlob = blob;
+      document.getElementById('audio-playback').src = URL.createObjectURL(blob);
       showPlayback();
       stream.getTracks().forEach(t => t.stop());
     };
@@ -713,28 +699,28 @@ function stopRecording() {
 }
 
 function setRecordingUI(recording) {
-  const btn = document.getElementById('record-btn');
-  const label = document.getElementById('record-label');
+  const btn    = document.getElementById('record-btn');
+  const label  = document.getElementById('record-label');
   const status = document.getElementById('recorder-status');
-  const waveform = document.getElementById('waveform');
+  const wave   = document.getElementById('waveform');
 
   if (recording) {
     btn.classList.add('recording');
-    label.textContent = 'Stop Recording';
+    label.textContent  = 'Stop Recording';
     status.textContent = 'Recording... speak clearly';
-    waveform.classList.add('active');
+    wave.classList.add('active');
   } else {
     btn.classList.remove('recording');
-    label.textContent = 'Start Recording';
+    label.textContent  = 'Start Recording';
     status.textContent = 'Recording stopped';
-    waveform.classList.remove('active');
+    wave.classList.remove('active');
   }
 }
 
 function showPlayback() {
   document.getElementById('playback-section').classList.add('visible');
-  document.getElementById('submit-section').classList.add('visible');
-  document.getElementById('recorder-status').textContent = 'Listen back, then submit or re-record';
+  document.getElementById('action-section').classList.add('visible');
+  document.getElementById('recorder-status').textContent = "Listen back, then submit for AI feedback";
 }
 
 function resetRecorder() {
@@ -742,45 +728,99 @@ function resetRecorder() {
   resetTimer();
   hasRecording = false;
   isRecording = false;
+  latestTranscript = '';
+  window.lastAudioBlob = null;
 
   document.getElementById('playback-section').classList.remove('visible');
-  document.getElementById('submit-section').classList.remove('visible');
+  document.getElementById('action-section').classList.remove('visible');
   document.getElementById('audio-playback').src = '';
-  document.getElementById('recorder-status').textContent = 'Press record when you\'re ready';
+  document.getElementById('recorder-status').textContent = "Press record when you're ready";
   document.getElementById('record-label').textContent = 'Start Recording';
   document.getElementById('record-btn').classList.remove('recording');
   document.getElementById('waveform').classList.remove('active');
+  setStatusHint('Transcribes your answer and runs STAR analysis', '');
+
+  // Re-enable submit in case it was disabled
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M2 8h12M9 3l5 5-5 5"/>
+    </svg>
+    Submit for AI Feedback`;
 }
 
+// ── Submit → AI feedback ──────────────────────────────────────────────────────
 async function submitAnswer() {
   if (!hasRecording || !window.lastAudioBlob) return;
 
-  const status = document.getElementById('recorder-status');
-  status.textContent = 'Transcribing your answer...';
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Analyzing...';
+  setStatusHint('Transcribing your answer...', '');
 
   try {
+    // 1. Transcribe
     const formData = new FormData();
     formData.append('file', window.lastAudioBlob, 'recording.webm');
 
-    const response = await fetch('http://localhost:3000/api/transcribe', {
+    const transcribeRes = await fetch('http://localhost:3000/api/transcribe', {
       method: 'POST',
       body: formData,
     });
+    if (!transcribeRes.ok) throw new Error('Transcription failed: ' + transcribeRes.status);
 
-    if (!response.ok) throw new Error('Server error: ' + response.status);
+    const transcribeData = await transcribeRes.json();
+    latestTranscript = transcribeData.transcript || '';
+    if (!latestTranscript) throw new Error('No transcript returned.');
 
-    const data = await response.json();
-    status.textContent = '✓ Transcription complete';
+    setStatusHint('Analyzing your answer...', '');
 
-    console.log('Transcript:', data.transcript);
-    alert('Transcript:\n\n' + data.transcript);
+    // 2. Analyze
+    const selectedQuestion = JSON.parse(localStorage.getItem('selectedQuestion'));
+    const resumeText = localStorage.getItem('resumeText') || '';
+
+    const analyzeRes = await fetch('http://localhost:5001/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcript: latestTranscript,
+        question: selectedQuestion.text,
+        resume: resumeText,
+      }),
+    });
+    if (!analyzeRes.ok) throw new Error('Analysis failed: ' + analyzeRes.status);
+
+    analysisResult = await analyzeRes.json();
+
+    // 3. Save to localStorage so feedback.html can read it
+    localStorage.setItem('latestTranscript', latestTranscript);
+    localStorage.setItem('latestAnalysis', JSON.stringify(analysisResult));
+    localStorage.setItem('latestAudioURL', document.getElementById('audio-playback').src);
+
+    // 4. Go to feedback page
+    window.location.href = 'feedback.html';
 
   } catch (err) {
     console.error(err);
-    status.textContent = 'Transcription failed — check the console.';
+    setStatusHint('Error: ' + err.message, 'error');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M2 8h12M9 3l5 5-5 5"/>
+      </svg>
+      Retry Submission`;
   }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function setStatusHint(msg, type) {
+  const el = document.getElementById('status-hint');
+  el.textContent = msg;
+  el.className = 'status-hint' + (type ? ' ' + type : '');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 loadQuestion();
 updateTimer(TOTAL_SECS);
 </script>
