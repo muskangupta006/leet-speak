@@ -11,5 +11,7 @@ Thumbs.db
 
 # Environment variables
 .env
-
+backend/serviceAccount.json
+gcs-key.json
+serviceAccount.json
 uploads/
