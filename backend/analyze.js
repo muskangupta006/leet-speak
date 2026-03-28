@@ -1,3 +1,6 @@
+const { saveSession, getUserSessions, db } = require('./firebase');
+const admin = require('firebase-admin');
+
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -96,6 +99,58 @@ app.post('/analyze', async (req, res) => {
   } catch (err) {
     console.error('Error:', JSON.stringify(err.response?.data, null, 2));
     res.status(500).json({ error: 'Something went wrong', detail: err.message });
+  }
+});
+// Save a session after analysis
+app.post('/save-session', async (req, res) => {
+  const { userId, question, transcript, resume, analysisResult } = req.body;
+  
+  try {
+    const sessionId = await saveSession(userId, {
+      question,
+      transcript,
+      resume,
+      ...analysisResult
+    });
+    res.json({ success: true, sessionId });
+  } catch (err) {
+    console.error('Firebase error:', err.message);
+    res.status(500).json({ error: 'Failed to save session' });
+  }
+});
+
+// Get all sessions for a user
+app.get('/sessions/:userId', async (req, res) => {
+  try {
+    const sessions = await getUserSessions(req.params.userId);
+    res.json(sessions);
+  } catch (err) {
+    console.error('Firebase error:', err.message);
+    res.status(500).json({ error: 'Failed to get sessions' });
+  }
+});
+
+app.post('/complete-question', async (req, res) => {
+  const { userId, questionId } = req.body;
+
+  try {
+    await db.collection('users').doc(userId).set({
+      completedQuestions: admin.firestore.FieldValue.arrayUnion(questionId)
+    }, { merge: true });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/completed-questions/:userId', async (req, res) => {
+  try {
+    const doc = await db.collection('users').doc(req.params.userId).get();
+    const data = doc.exists ? doc.data() : { completedQuestions: [] };
+    res.json(data.completedQuestions || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
