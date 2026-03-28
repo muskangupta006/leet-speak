@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100 Questions - Leet Speak</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .container {
+            max-width: 800px;
+            width: 95%;
+            padding: 2rem;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+        .header h1 {
+            margin-bottom: 0;
+        }
+        .back-btn {
+            background-color: transparent;
+            color: #bb86fc;
+            border: 1px solid #bb86fc;
+            padding: 0.5rem 1rem;
+        }
+        .back-btn:hover {
+            background-color: rgba(187, 134, 252, 0.1);
+        }
+        .questions-list {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .question-placeholder {
+            background-color: #2c2c2c;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #03dac6;
+        }
+        .question-placeholder h3 {
+            color: #e0e0e0;
+            margin-bottom: 0.5rem;
+        }
+        .question-placeholder p {
+            margin-bottom: 0;
+            color: #a0a0a0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>100 Questions</h1>
+            <button class="back-btn" onclick="window.location.href='index.html'">Back to Home</button>
+        </div>
+        
+        <p style="text-align: left; margin-bottom: 2rem;">Here is the curated list of 100 coding questions to ace your interviews.</p>
+        
+        <div class="questions-list">
+            <!-- Placeholders until we fetch from backend -->
+            <div class="question-placeholder">
+                <h3>1. Loading Questions...</h3>
+                <p>Waiting for backend connection to retrieve the questions list.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
