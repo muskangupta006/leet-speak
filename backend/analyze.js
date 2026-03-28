@@ -7,6 +7,9 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+const multer = require('multer');
+const { PdfReader } = require('pdfreader');
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 app.use(cors());
@@ -190,6 +193,78 @@ app.get('/session-summary/:userId/:questionId', async (req, res) => {
   }
 });
 
+app.post('/parse-resume', upload.single('resume'), async (req, res) => {
+  try {
+    const buffer = req.file.buffer;
+    let text = '';
+    
+    await new Promise((resolve, reject) => {
+      new PdfReader().parseBuffer(buffer, (err, item) => {
+        if (err) reject(err);
+        else if (!item) resolve();
+        else if (item.text) text += item.text + ' ';
+      });
+    });
+
+    res.json({ text });
+  } catch (err) {
+    console.error('PDF parse error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/resume-insights', async (req, res) => {
+  const { resume } = req.body;
+  if (!resume) return res.status(400).json({ error: 'resume is required' });
+
+  try {
+    const response = await axios.post(
+      FEATHERLESS_URL,
+      {
+        model: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert career coach. Return ONLY valid JSON, no explanation, no markdown.'
+          },
+          {
+            role: 'user',
+            content: `Based on this resume, suggest 2 specific talking points for each behavioral interview category. Use their actual experience and project names.
+
+Resume:
+${resume}
+
+Return ONLY this JSON:
+{
+  "leadership": ["talking point 1", "talking point 2"],
+  "teamwork": ["talking point 1", "talking point 2"],
+  "conflict_resolution": ["talking point 1", "talking point 2"],
+  "problem_solving": ["talking point 1", "talking point 2"],
+  "growth": ["talking point 1", "talking point 2"],
+  "initiative": ["talking point 1", "talking point 2"]
+}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 800,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${FEATHERLESS_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    let raw = response.data.choices[0].message.content;
+    raw = raw.trim().replace(/^```json/, '').replace(/^```/, '').replace(/```$/, '').trim();
+    res.json(JSON.parse(raw));
+
+  } catch (err) {
+    console.error('Resume insights error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to analyze resume' });
+  }
+});
 
 
 const PORT = 5001;

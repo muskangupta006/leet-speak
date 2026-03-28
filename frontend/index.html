@@ -724,8 +724,24 @@ nav {
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-title">Add your resume</div>
-    <div class="modal-sub">Paste the text from your resume. The AI will tailor the improved answer to your actual experience.</div>
-    <textarea id="resume-input" placeholder="Paste your resume text here — education, work experience, projects, skills..."></textarea>
+<div class="modal-sub">Upload a PDF or paste text — we'll generate talking points for each category.</div>
+
+<input type="file" id="resume-file" accept=".pdf" style="
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:12px;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  margin-bottom:12px;
+  cursor:pointer;
+"/>
+
+<div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:12px">— or paste text —</div>
+
+<textarea id="resume-input" placeholder="Paste your resume text here — education, work experience, projects, skills..."></textarea>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeResumeModal()">Cancel</button>
       <button class="btn-save" onclick="saveResume()">Save Resume</button>
@@ -934,18 +950,110 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('modal-overlay')) closeResumeModal();
 }
 
-function saveResume() {
-  resumeText = document.getElementById('resume-input').value.trim();
+async function saveResume() {
+  const fileInput = document.getElementById('resume-file');
+  const textInput = document.getElementById('resume-input').value.trim();
+
+  if (fileInput.files.length > 0) {
+    const formData = new FormData();
+    formData.append('resume', fileInput.files[0]);
+    
+    try {
+      const res = await fetch('http://localhost:5001/parse-resume', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      resumeText = data.text;
+    } catch (err) {
+      console.error('PDF parse error', err);
+      resumeText = textInput;
+    }
+  } else {
+    resumeText = textInput;
+  }
+
   closeResumeModal();
+
   const btn = document.getElementById('resume-btn');
   const btnText = document.getElementById('resume-btn-text');
+
   if (resumeText) {
     btn.classList.add('uploaded');
-    btnText.textContent = 'Resume Added ✓';
+    btnText.textContent = 'Analyzing resume...';
+
+    try {
+      const res = await fetch('http://localhost:5001/resume-insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: resumeText })
+      });
+      const insights = await res.json();
+      localStorage.setItem('resumeInsights', JSON.stringify(insights));
+      btnText.textContent = 'Resume Added ✓';
+      showInsightsPanel(insights);
+    } catch (err) {
+      console.error('insights error', err);
+      btnText.textContent = 'Resume Added ✓';
+    }
   } else {
     btn.classList.remove('uploaded');
     btnText.textContent = 'Upload Resume';
   }
+}
+
+function showInsightsPanel(insights) {
+  const existing = document.getElementById('insights-panel');
+  if (existing) existing.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'insights-panel';
+  panel.style.cssText = `
+    position: fixed;
+    right: 24px;
+    top: 70px;
+    width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 20px;
+    z-index: 100;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    max-height: 80vh;
+    overflow-y: auto;
+  `;
+
+  const categories = {
+    leadership: 'Leadership',
+    teamwork: 'Teamwork',
+    conflict_resolution: 'Conflict Resolution',
+    problem_solving: 'Problem Solving',
+    growth: 'Growth',
+    initiative: 'Initiative'
+  };
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)">Your Talking Points</div>
+      <button onclick="document.getElementById('insights-panel').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">×</button>
+    </div>
+  `;
+
+  for (const [key, label] of Object.entries(categories)) {
+    if (insights[key]) {
+      html += `
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">${label}</div>
+          ${insights[key].map(point => `
+            <div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);line-height:1.5">→ ${point}</div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
+
+  panel.innerHTML = html;
+  document.body.appendChild(panel);
 }
 
 // ── Start practice ───────────────────────────────────────────────────────────
