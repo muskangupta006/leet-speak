@@ -8,9 +8,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to the Project!</h1>
-        <p>This is the frontend. The backend connects to this via API.</p>
-        <button id="fetchDataBtn">Fetch Data from Backend</button>
+        <h1>Welcome to Leet Speak!</h1>
+        <p>Master your coding interviews. This is the frontend, and your backend connects via API.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <button id="fetchDataBtn">Test API Connection</button>
+            <button onclick="window.location.href='100-questions.html'" style="background-color: #bb86fc; color: #000;">100 Questions</button>
+        </div>
         <div id="result"></div>
     </div>
     <script src="app.js"></script>
