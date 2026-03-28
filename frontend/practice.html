@@ -665,7 +665,6 @@ function resetTimer() {
   ring.classList.remove('warning', 'danger');
 }
 
-// ── Recording ────────────────────────────────────────────────────────────────
 async function toggleRecording() {
   if (isRecording) {
     stopRecording();
@@ -686,6 +685,7 @@ async function startRecording() {
 
     mediaRecorder.onstop = () => {
       const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      window.lastAudioBlob = blob; // ← ADD THIS LINE
       const url = URL.createObjectURL(blob);
       document.getElementById('audio-playback').src = url;
       showPlayback();
@@ -752,13 +752,35 @@ function resetRecorder() {
   document.getElementById('waveform').classList.remove('active');
 }
 
-// ── Submit (placeholder) ─────────────────────────────────────────────────────
-function submitAnswer() {
-  if (!hasRecording) return;
-  alert('Answer submitted!\n\n(AI feedback will be wired up here.)');
+async function submitAnswer() {
+  if (!hasRecording || !window.lastAudioBlob) return;
+
+  const status = document.getElementById('recorder-status');
+  status.textContent = 'Transcribing your answer...';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', window.lastAudioBlob, 'recording.webm');
+
+    const response = await fetch('http://localhost:3000/api/transcribe', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Server error: ' + response.status);
+
+    const data = await response.json();
+    status.textContent = '✓ Transcription complete';
+
+    console.log('Transcript:', data.transcript);
+    alert('Transcript:\n\n' + data.transcript);
+
+  } catch (err) {
+    console.error(err);
+    status.textContent = 'Transcription failed — check the console.';
+  }
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
 loadQuestion();
 updateTimer(TOTAL_SECS);
 </script>
