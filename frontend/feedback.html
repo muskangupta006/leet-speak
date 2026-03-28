@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedback — Leet Speak</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080a0f;
+      --surface: #0f1218;
+      --surface2: #161b24;
+      --surface3: #1d2433;
+      --border: rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.12);
+      --text: #e2e8f4;
+      --muted: #6b7a96;
+      --muted2: #4a5568;
+      --accent: #4f8ef7;
+      --green: #34d399;
+      --green-bg: rgba(52,211,153,0.08);
+      --amber: #fbbf24;
+      --amber-bg: rgba(251,191,36,0.08);
+      --coral: #fb7185;
+      --coral-bg: rgba(251,113,133,0.08);
+      --purple: #a78bfa;
+      --purple-bg: rgba(167,139,250,0.08);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 56px;
+      background: rgba(8,10,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-mark svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 52px 32px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow-line {
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .page h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .page-sub {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 760px;
+      margin-bottom: 28px;
+    }
+
+    .question-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+
+    .question-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    .feedback-grid {
+      display: flex;
+      gap: 24px;
+      align-items: stretch;
+      flex-wrap: nowrap;
+    }
+
+    .feedback-grid > .card {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .card-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .transcript-box {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--text);
+      min-height: 220px;
+      white-space: pre-wrap;
+    }
+
+    .audio-wrap {
+      margin-top: 16px;
+    }
+
+    audio {
+      width: 100%;
+      height: 40px;
+      accent-color: var(--accent);
+    }
+
+    .analysis-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .analysis-block {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .analysis-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .score-chip {
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .score-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .score-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .improved-script {
+      white-space: pre-wrap;
+      line-height: 1.7;
+    }
+
+    .empty-state {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 28px;
+      color: var(--muted);
+    }
+
+    /* DONE BUTTON */
+    .done-section {
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .done-btn {
+      width: 100%;
+      max-width: 400px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(52,211,153,0.3);
+      background: var(--green-bg);
+      color: var(--green);
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .done-btn:hover { background: rgba(52,211,153,0.15); transform: translateY(-1px); }
+    .done-btn:active { transform: translateY(0); }
+    .done-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .done-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted2);
+      text-align: center;
+    }
+    .done-hint.error { color: var(--coral); }
+
+    @media (max-width: 900px) {
+      .feedback-grid {
+        flex-wrap: wrap;
+      }
+
+      .feedback-grid > .card {
+        min-width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; }
+      .page { padding: 32px 16px 60px; }
+      .score-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <div class="logo-mark">
+        <svg viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="3" fill="white"/>
+          <circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.5" stroke-dasharray="3 2"/>
+        </svg>
+      </div>
+      Leet Speak
+    </a>
+    <a class="back-btn" href="practice.html">Back to practice</a>
+  </nav>
+
+  <div class="page">
+    <div class="page-eyebrow">
+      <div class="eyebrow-line"></div>
+      AI Feedback
+    </div>
+
+    <h1>Your answer, broken down.</h1>
+    <p class="page-sub">
+      Review your transcript, listen back to your recording, and see what the AI coach thinks about your structure, confidence, and clarity.
+    </p>
+
+    <div class="question-card">
+      <div class="question-label">Interview question</div>
+      <div class="question-text" id="question-text">Loading question...</div>
+    </div>
+
+    <div id="content"></div>
+
+    <!-- DONE BUTTON — shown after analysis loads -->
+    <div class="done-section" id="done-section" style="display:none;">
+      <button class="done-btn" id="done-btn" onclick="markDone()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 8l4 4 6-6"/>
+        </svg>
+        Done — Save & Go Home
+      </button>
+      <div class="done-hint" id="done-hint">Saves this session and marks the question as completed</div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(str = '') {
+      return str
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function loadFeedback() {
+      const question = JSON.parse(localStorage.getItem('selectedQuestion') || 'null');
+      const transcript = localStorage.getItem('latestTranscript') || '';
+      const analysis = JSON.parse(localStorage.getItem('latestAnalysis') || 'null');
+      const audioURL = localStorage.getItem('latestAudioURL') || '';
+
+      document.getElementById('question-text').textContent =
+        question?.text || 'No question found.';
+
+      const content = document.getElementById('content');
+
+      if (!transcript || !analysis) {
+        content.innerHTML = `
+          <div class="empty-state">
+            No feedback found yet. Go back to the practice page, record an answer, and submit it for AI feedback.
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="feedback-grid">
+          <div class="card">
+            <div class="card-title">Transcript & Playback</div>
+            <div class="card-sub">This is what the system heard from your recording.</div>
+
+            <div class="transcript-box">${escapeHtml(transcript)}</div>
+
+            <div class="audio-wrap">
+              <div class="analysis-label">Recording</div>
+              <audio controls src="${audioURL}"></audio>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">AI Analysis</div>
+            <div class="card-sub">Your answer is analyzed using STAR structure, confidence, and filler words.</div>
+
+            <div class="analysis-section">
+              <div class="analysis-block">
+                <div class="analysis-label">Top Tip</div>
+                <div>${escapeHtml(analysis.top_tip || 'No tip available.')}</div>
+              </div>
+
+              <div class="analysis-block">
+                <div class="analysis-label">Confidence</div>
+                <div>
+                  <strong>${escapeHtml(String(analysis.confidence?.score ?? '—'))}/100</strong>
+                  · ${escapeHtml(analysis.confidence?.label || 'Unknown')}
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                  ${escapeHtml(analysis.confidence?.reasoning || '')}
+                </div>
+              </div>
+
+              <div class="analysis-block">
+                <div class="analysis-label">STAR Breakdown</div>
+                <div class="score-row">
+                  <div class="score-chip">
+                    <div class="score-name">Situation</div>
+                    <div class="score-value">${analysis.star?.situation?.score ?? '—'}</div>
+                    <div class="muted">${escapeHtml(analysis.star?.situation?.feedback || '')}</div>
+                  </div>
+
+                  <div class="score-chip">
+                    <div class="score-name">Task</div>
+                    <div class="score-value">${analysis.star?.task?.score ?? '—'}</div>
+                    <div class="muted">${escapeHtml(analysis.star?.task?.feedback || '')}</div>
+                  </div>
+
+                  <div class="score-chip">
+                    <div class="score-name">Action</div>
+                    <div class="score-value">${analysis.star?.action?.score ?? '—'}</div>
+                    <div class="muted">${escapeHtml(analysis.star?.action?.feedback || '')}</div>
+                  </div>
+
+                  <div class="score-chip">
+                    <div class="score-name">Result</div>
+                    <div class="score-value">${analysis.star?.result?.score ?? '—'}</div>
+                    <div class="muted">${escapeHtml(analysis.star?.result?.feedback || '')}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="analysis-block">
+                <div class="analysis-label">Filler Words</div>
+                <div><strong>Total:</strong> ${analysis.filler_words?.total ?? 0}</div>
+                <div class="muted" style="margin-top:8px;">
+                  um: ${analysis.filler_words?.breakdown?.um ?? 0},
+                  uh: ${analysis.filler_words?.breakdown?.uh ?? 0},
+                  like: ${analysis.filler_words?.breakdown?.like ?? 0},
+                  you know: ${analysis.filler_words?.breakdown?.['you know'] ?? 0},
+                  basically: ${analysis.filler_words?.breakdown?.basically ?? 0},
+                  literally: ${analysis.filler_words?.breakdown?.literally ?? 0},
+                  kind of: ${analysis.filler_words?.breakdown?.['kind of'] ?? 0},
+                  sort of: ${analysis.filler_words?.breakdown?.['sort of'] ?? 0}
+                </div>
+              </div>
+
+              <div class="analysis-block">
+                <div class="analysis-label">Improved Answer</div>
+                <div class="improved-script">${escapeHtml(analysis.improved_script || '')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Show the Done button now that analysis is displayed
+      document.getElementById('done-section').style.display = 'flex';
+    }
+
+    loadFeedback();
+
+    // ── Done → save to Firebase + go home ──────────────────────────────────
+    async function markDone() {
+      const doneBtn = document.getElementById('done-btn');
+      const doneHint = document.getElementById('done-hint');
+      doneBtn.disabled = true;
+      doneBtn.textContent = 'Saving...';
+
+      try {
+        const selectedQuestion = JSON.parse(localStorage.getItem('selectedQuestion'));
+        const resumeText = localStorage.getItem('resumeText') || '';
+        const transcript = localStorage.getItem('latestTranscript') || '';
+        const analysis = JSON.parse(localStorage.getItem('latestAnalysis') || 'null');
+        const userId = localStorage.getItem('userId');
+
+        // Save session to Firebase
+        await fetch('http://localhost:5001/save-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            questionId: selectedQuestion.id,
+            question: selectedQuestion.text,
+            transcript,
+            resume: resumeText,
+            analysisResult: analysis,
+          }),
+        });
+
+        // Mark question as completed
+        await fetch('http://localhost:5001/complete-question', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            questionId: selectedQuestion.id,
+          }),
+        });
+
+        window.location.href = 'index.html';
+
+      } catch (err) {
+        console.error(err);
+        doneBtn.disabled = false;
+        doneBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 8l4 4 6-6"/>
+          </svg>
+          Retry Save`;
+        doneHint.textContent = 'Save failed: ' + err.message;
+        doneHint.classList.add('error');
+      }
+    }
+  </script>
+</body>
+</html>
