@@ -543,6 +543,20 @@ nav {
   .hero, .random-section, .main { padding-left: 16px; padding-right: 16px; }
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBIQy_JCpsAjK9j1-dUrtWsQqtdbRBm6l0",
+    authDomain: "leet-speak-b3199.firebaseapp.com",
+    projectId: "leet-speak-b3199",
+    storageBucket: "leet-speak-b3199.firebasestorage.app",
+    messagingSenderId: "756733827590",
+    appId: "1:756733827590:web:eebc3c179767b78a7f4187"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+</script>
 </head>
 <body>
 
@@ -559,10 +573,14 @@ nav {
   </a>
   <div class="nav-right">
     <span class="nav-tag">Interview Copilot</span>
-    <button class="resume-btn" id="resume-btn" onclick="openResumeModal()">
-      <div class="resume-dot"></div>
-      <span id="resume-btn-text">Upload Resume</span>
-    </button>
+    <button class="resume-btn" id="signin-btn" onclick="handleSignIn()">
+  <div class="resume-dot"></div>
+  <span id="signin-btn-text">Sign in with Google</span>
+</button>
+<button class="resume-btn" id="resume-btn" onclick="openResumeModal()">
+  <div class="resume-dot"></div>
+  <span id="resume-btn-text">Upload Resume</span>
+</button>
   </div>
 </nav>
 
@@ -733,6 +751,8 @@ let QUESTIONS = [];
 let currentCat = 'all';
 let selectedQuestion = null;
 let resumeText = '';
+let currentUserId = null;  
+let completedQuestions = [];  
 
 // ── Load questions from questions.json ──────────────────────────────────────
 async function loadQuestions() {
@@ -750,7 +770,7 @@ async function loadQuestions() {
     }));
 
     updateCounts();
-    renderQuestions();
+    await renderQuestions();
     document.getElementById('total-count').textContent = QUESTIONS.length;
   } catch (err) {
     document.getElementById('question-grid').innerHTML =
@@ -803,7 +823,7 @@ const CAT_LABELS = {
   failure:             'Failure & Growth'
 };
 
-function renderQuestions() {
+async function renderQuestions() {
   const grid = document.getElementById('question-grid');
   const filtered = getFiltered();
   grid.innerHTML = '';
@@ -813,16 +833,34 @@ function renderQuestions() {
     return;
   }
 
-  filtered.forEach((q, i) => {
+  for (let i = 0; i < filtered.length; i++) {
+    const q = filtered[i];
+    const isDone = completedQuestions.includes(q.id);
+    
+    let scores = null;
+    if (isDone && currentUserId) {
+      try {
+        const res = await fetch(`http://localhost:5001/session-summary/${currentUserId}/${q.id}`);
+        scores = await res.json();
+      } catch (e) {}
+    }
+
     const card = document.createElement('div');
     card.className = 'q-card' + (selectedQuestion && selectedQuestion.id === q.id ? ' selected-card' : '');
     card.style.animationDelay = Math.min(i * 0.03, 0.4) + 's';
     card.innerHTML = `
-      <div class="q-num">${String(q.id).padStart(2, '0')}</div>
+      <div class="q-num" style="${isDone ? 'color:var(--green)' : ''}">${isDone ? '✓' : String(q.id).padStart(2, '0')}</div>
       <div class="q-body">
         <div class="q-text">${q.text}</div>
         <div class="q-tags">
           <span class="q-tag" style="background:${CAT_BG[q.cat]};color:${CAT_COLOR[q.cat]}">${CAT_LABELS[q.cat] || q.cat}</span>
+          ${isDone && scores && scores.star ? `
+            <span class="q-tag" style="background:var(--green-bg);color:var(--green)">Overall: ${scores.overall}</span>
+            <span class="q-tag" style="background:var(--surface3);color:var(--muted)">S:${scores.star.situation}</span>
+            <span class="q-tag" style="background:var(--surface3);color:var(--muted)">T:${scores.star.task}</span>
+            <span class="q-tag" style="background:var(--surface3);color:var(--muted)">A:${scores.star.action}</span>
+            <span class="q-tag" style="background:var(--surface3);color:var(--muted)">R:${scores.star.result}</span>
+          ` : ''}
         </div>
       </div>
       <div class="q-right">
@@ -835,7 +873,7 @@ function renderQuestions() {
     `;
     card.onclick = () => selectQuestion(q, card);
     grid.appendChild(card);
-  });
+  }
 }
 
 // ── Selection ────────────────────────────────────────────────────────────────
@@ -854,7 +892,7 @@ function closeBanner() {
 }
 
 // ── Category filter ──────────────────────────────────────────────────────────
-function setCategory(btn) {
+async function setCategory(btn) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentCat = btn.dataset.cat;
@@ -864,7 +902,7 @@ function setCategory(btn) {
     initiative: "Initiative", conflict_resolution: "Conflict Resolution", achievement: "Achievement", failure: "Failure"
   };
   document.getElementById('content-title').textContent = labels[currentCat] || currentCat;
-  renderQuestions();
+  await renderQuestions();
 }
 
 // ── Random pick ──────────────────────────────────────────────────────────────
@@ -913,13 +951,48 @@ function saveResume() {
 // ── Start practice ───────────────────────────────────────────────────────────
 function startPractice() {
   if (!selectedQuestion) return;
-
   localStorage.setItem('selectedQuestion', JSON.stringify(selectedQuestion));
   localStorage.setItem('resumeText', resumeText);
+  localStorage.setItem('userId', currentUserId || 'guest-' + Math.random().toString(36).substr(2, 9));
   window.location.href = "practice.html";
 }
-
 // ── Init ─────────────────────────────────────────────────────────────────────
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUserId = user.uid;
+    document.getElementById('signin-btn-text').textContent = user.displayName || 'Signed in';
+    document.getElementById('signin-btn').classList.add('uploaded');
+    loadCompletedQuestions();
+  } else {
+    currentUserId = null;
+    document.getElementById('signin-btn-text').textContent = 'Sign in with Google';
+    document.getElementById('signin-btn').classList.remove('uploaded');
+  }
+});
+
+function handleSignIn() {
+  if (currentUserId) {
+    auth.signOut();
+  } else {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(err => console.error('Sign in error:', err));
+  }
+}
+
+// Load which questions user has already completed
+
+async function loadCompletedQuestions() {
+  if (!currentUserId) return;
+  try {
+    const res = await fetch(`http://localhost:5001/completed-questions/${currentUserId}`);
+    completedQuestions = await res.json();
+    await renderQuestions(); // re-render with checkmarks
+  } catch (err) {
+    console.error('Could not load completed questions', err);
+  }
+}
 loadQuestions();
 </script>
 </body>

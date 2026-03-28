@@ -103,10 +103,12 @@ app.post('/analyze', async (req, res) => {
 });
 // Save a session after analysis
 app.post('/save-session', async (req, res) => {
-  const { userId, question, transcript, resume, analysisResult } = req.body;
+  const { userId, questionId, question, transcript, resume, analysisResult } = req.body;
+
   
   try {
-    const sessionId = await saveSession(userId, {
+     const sessionId = await saveSession(userId, {
+      questionId,
       question,
       transcript,
       resume,
@@ -153,6 +155,40 @@ app.get('/completed-questions/:userId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get('/session-summary/:userId/:questionId', async (req, res) => {
+  try {
+    const { userId, questionId } = req.params;
+    
+    const snapshot = await db.collection('sessions')
+      .where('userId', '==', userId)
+      .where('questionId', '==', parseInt(questionId))
+      .get();
+
+    if (snapshot.empty) {
+      return res.json(null);
+    }
+
+    const data = snapshot.docs[0].data();
+    
+    const s = data.star?.situation?.score || 0;
+    const t = data.star?.task?.score      || 0;
+    const a = data.star?.action?.score    || 0;
+    const r = data.star?.result?.score    || 0;
+    const c = data.confidence?.score      || 0;
+
+    res.json({
+      star: { situation: s, task: t, action: a, result: r },
+      confidence: c,
+      overall: Math.round((s + t + a + r + c) / 5)
+    });
+  } catch (err) {
+    console.error('session-summary error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 const PORT = 5001;
 app.listen(PORT, () => {

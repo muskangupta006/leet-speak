@@ -10,6 +10,7 @@ const db = admin.firestore();
 async function saveSession(userId, data) {
   const session = {
     userId,
+    questionId: data.questionId,
     question: data.question,
     transcript: data.transcript,
     resume: data.resume || '',
