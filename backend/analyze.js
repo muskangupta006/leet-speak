@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { saveSession, getUserSessions, db } = require('./firebase');
 const admin = require('firebase-admin');
 
