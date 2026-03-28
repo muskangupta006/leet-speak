@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Practice — Leet Speak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080a0f;
+  --surface: #0f1218;
+  --surface2: #161b24;
+  --surface3: #1d2433;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e2e8f4;
+  --muted: #6b7a96;
+  --muted2: #4a5568;
+  --accent: #4f8ef7;
+  --accent-glow: rgba(79,142,247,0.15);
+  --green: #34d399;
+  --green-bg: rgba(52,211,153,0.08);
+  --coral: #fb7185;
+  --coral-bg: rgba(251,113,133,0.08);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,0.08);
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  background: rgba(8,10,15,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.logo-mark {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-mark svg { width: 14px; height: 14px; }
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.back-btn:hover { color: var(--text); border-color: var(--border2); }
+
+/* PAGE */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 52px 32px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* QUESTION CARD */
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+
+.question-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.eyebrow-line { width: 20px; height: 1px; background: var(--accent); }
+
+.question-text {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.question-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.q-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  background: var(--surface3);
+  color: var(--muted);
+}
+
+/* STAR HINT */
+.star-hint {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.star-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.star-letter {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.star-word {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+.star-desc {
+  font-size: 11px;
+  color: var(--muted2);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* RECORDER */
+.recorder-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 16px;
+}
+
+/* TIMER RING */
+.timer-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.timer-svg {
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg);
+}
+
+.timer-track {
+  fill: none;
+  stroke: var(--surface3);
+  stroke-width: 4;
+}
+
+.timer-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 326.56;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s;
+}
+
+.timer-progress.warning { stroke: var(--amber); }
+.timer-progress.danger  { stroke: var(--coral); }
+
+.timer-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.timer-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.timer-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* RECORD BUTTON */
+.record-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+.record-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.record-btn:active { transform: translateY(0); }
+.record-btn.recording {
+  background: var(--coral);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.record-btn.recording:hover { filter: brightness(1.1); }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251,113,133,0.4); }
+  50%       { box-shadow: 0 0 0 10px rgba(251,113,133,0); }
+}
+
+.record-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+}
+.record-btn.recording .record-dot {
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* STATUS */
+.recorder-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  min-height: 16px;
+}
+
+/* WAVEFORM */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.waveform.active { opacity: 1; }
+.wave-bar {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: wave 0.8s ease-in-out infinite;
+  min-height: 4px;
+}
+.wave-bar:nth-child(1)  { animation-delay: 0.0s; height: 8px; }
+.wave-bar:nth-child(2)  { animation-delay: 0.1s; height: 16px; }
+.wave-bar:nth-child(3)  { animation-delay: 0.2s; height: 24px; }
+.wave-bar:nth-child(4)  { animation-delay: 0.3s; height: 32px; }
+.wave-bar:nth-child(5)  { animation-delay: 0.2s; height: 20px; }
+.wave-bar:nth-child(6)  { animation-delay: 0.1s; height: 28px; }
+.wave-bar:nth-child(7)  { animation-delay: 0.0s; height: 14px; }
+.wave-bar:nth-child(8)  { animation-delay: 0.15s; height: 22px; }
+.wave-bar:nth-child(9)  { animation-delay: 0.25s; height: 10px; }
+.wave-bar:nth-child(10) { animation-delay: 0.05s; height: 18px; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+
+/* PLAYBACK */
+.playback-section {
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.playback-section.visible { display: flex; }
+
+.playback-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.playback-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+audio {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  accent-color: var(--accent);
+}
+
+.rerecord-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.rerecord-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* SUBMIT */
+.submit-section {
+  display: none;
+}
+.submit-section.visible { display: block; }
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.submit-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.submit-btn:active { transform: translateY(0); }
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.submit-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted2);
+  margin-top: 10px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* NO MIC */
+.no-mic {
+  display: none;
+  background: var(--coral-bg);
+  border: 1px solid rgba(251,113,133,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  color: var(--coral);
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .page { padding: 32px 16px 60px; }
+  .star-hint { grid-template-columns: repeat(2, 1fr); }
+  nav { padding: 0 16px; }
+  .recorder-card { padding: 28px 20px; }
+  .question-card { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <div class="logo-mark">
+      <svg viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="3" fill="white"/>
+        <circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.5" stroke-dasharray="3 2"/>
+      </svg>
+    </div>
+    Leet Speak
+  </a>
+  <a class="back-btn" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M9 3L4 7l5 4"/>
+    </svg>
+    Back to questions
+  </a>
+</nav>
+
+<div class="page">
+
+  <!-- QUESTION -->
+  <div class="question-card">
+    <div class="question-eyebrow">
+      <div class="eyebrow-line"></div>
+      Your question
+    </div>
+    <div class="question-text" id="question-text">Loading question...</div>
+    <div class="question-meta">
+      <span class="q-tag" id="question-cat"></span>
+    </div>
+  </div>
+
+  <!-- STAR FRAMEWORK HINT -->
+  <div class="star-hint">
+    <div class="star-item">
+      <div class="star-letter">S</div>
+      <div class="star-word">Situation</div>
+      <div class="star-desc">Set the scene and context</div>
+    </div>
+    <div class="star-item">
+      <div class="star-letter">T</div>
+      <div class="star-word">Task</div>
+      <div class="star-desc">What was your responsibility?</div>
+    </div>
+    <div class="star-item">
+      <div class="star-letter">A</div>
+      <div class="star-word">Action</div>
+      <div class="star-desc">What steps did you take?</div>
+    </div>
+    <div class="star-item">
+      <div class="star-letter">R</div>
+      <div class="star-word">Result</div>
+      <div class="star-desc">What was the outcome?</div>
+    </div>
+  </div>
+
+  <!-- RECORDER -->
+  <div class="recorder-card">
+
+    <!-- Timer ring -->
+    <div class="timer-wrap">
+      <svg class="timer-svg" viewBox="0 0 120 120">
+        <circle class="timer-track" cx="60" cy="60" r="52"/>
+        <circle class="timer-progress" id="timer-ring" cx="60" cy="60" r="52"/>
+      </svg>
+      <div class="timer-center">
+        <div class="timer-num" id="timer-num">60</div>
+        <div class="timer-label">seconds</div>
+      </div>
+    </div>
+
+    <!-- Waveform -->
+    <div class="waveform" id="waveform">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <!-- Record button -->
+    <button class="record-btn" id="record-btn" onclick="toggleRecording()">
+      <div class="record-dot"></div>
+      <span id="record-label">Start Recording</span>
+    </button>
+
+    <!-- Status -->
+    <div class="recorder-status" id="recorder-status">Press record when you're ready</div>
+
+    <!-- No mic error -->
+    <div class="no-mic" id="no-mic">
+      Microphone access is required. Please allow mic access and refresh the page.
+    </div>
+
+    <!-- Playback -->
+    <div class="playback-section" id="playback-section">
+      <div class="playback-label">Your recording</div>
+      <div class="playback-row">
+        <audio id="audio-playback" controls></audio>
+        <button class="rerecord-btn" onclick="resetRecorder()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M1 6a5 5 0 1 0 1.5-3.5"/>
+            <path d="M1 2v3h3"/>
+          </svg>
+          Re-record
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="submit-section" id="submit-section">
+    <button class="submit-btn" onclick="submitAnswer()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M2 8h12M9 3l5 5-5 5"/>
+      </svg>
+      Submit for AI Feedback
+    </button>
+    <div class="submit-hint">AI grading coming soon</div>
+  </div>
+
+</div>
+
+<script>
+const TOTAL_SECS = 60;
+const CIRCUMFERENCE = 2 * Math.PI * 52; // 326.56
+
+let mediaRecorder = null;
+let audioChunks = [];
+let timerInterval = null;
+let secondsLeft = TOTAL_SECS;
+let isRecording = false;
+let hasRecording = false;
+
+const CAT_LABELS = {
+  leadership: 'Leadership', teamwork: 'Teamwork',
+  problem_solving: 'Problem Solving', communication: 'Communication',
+  adaptability: 'Adaptability', time_management: 'Time Management',
+  initiative: 'Initiative', conflict_resolution: 'Conflict Resolution',
+  achievement: 'Achievement', failure: 'Failure & Growth'
+};
+
+// ── Load question from localStorage ─────────────────────────────────────────
+function loadQuestion() {
+  try {
+    const q = JSON.parse(localStorage.getItem('selectedQuestion'));
+    if (!q) {
+      document.getElementById('question-text').textContent = 'No question selected — go back and pick one.';
+      return;
+    }
+    document.getElementById('question-text').textContent = q.text;
+    const catEl = document.getElementById('question-cat');
+    catEl.textContent = CAT_LABELS[q.cat] || q.cat;
+  } catch (e) {
+    document.getElementById('question-text').textContent = 'Could not load question.';
+  }
+}
+
+// ── Timer ────────────────────────────────────────────────────────────────────
+function updateTimer(secs) {
+  document.getElementById('timer-num').textContent = secs;
+  const ring = document.getElementById('timer-ring');
+  const fraction = secs / TOTAL_SECS;
+  ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+
+  ring.classList.remove('warning', 'danger');
+  if (secs <= 10) ring.classList.add('danger');
+  else if (secs <= 20) ring.classList.add('warning');
+}
+
+function startTimer() {
+  secondsLeft = TOTAL_SECS;
+  updateTimer(secondsLeft);
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    updateTimer(secondsLeft);
+    if (secondsLeft <= 0) stopRecording();
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function resetTimer() {
+  stopTimer();
+  secondsLeft = TOTAL_SECS;
+  updateTimer(TOTAL_SECS);
+  const ring = document.getElementById('timer-ring');
+  ring.classList.remove('warning', 'danger');
+}
+
+// ── Recording ────────────────────────────────────────────────────────────────
+async function toggleRecording() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const url = URL.createObjectURL(blob);
+      document.getElementById('audio-playback').src = url;
+      showPlayback();
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+    startTimer();
+    setRecordingUI(true);
+  } catch (err) {
+    document.getElementById('no-mic').style.display = 'block';
+    document.getElementById('record-btn').style.display = 'none';
+    console.error(err);
+  }
+}
+
+function stopRecording() {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+  mediaRecorder.stop();
+  isRecording = false;
+  stopTimer();
+  setRecordingUI(false);
+  hasRecording = true;
+}
+
+function setRecordingUI(recording) {
+  const btn = document.getElementById('record-btn');
+  const label = document.getElementById('record-label');
+  const status = document.getElementById('recorder-status');
+  const waveform = document.getElementById('waveform');
+
+  if (recording) {
+    btn.classList.add('recording');
+    label.textContent = 'Stop Recording';
+    status.textContent = 'Recording... speak clearly';
+    waveform.classList.add('active');
+  } else {
+    btn.classList.remove('recording');
+    label.textContent = 'Start Recording';
+    status.textContent = 'Recording stopped';
+    waveform.classList.remove('active');
+  }
+}
+
+function showPlayback() {
+  document.getElementById('playback-section').classList.add('visible');
+  document.getElementById('submit-section').classList.add('visible');
+  document.getElementById('recorder-status').textContent = 'Listen back, then submit or re-record';
+}
+
+function resetRecorder() {
+  stopRecording();
+  resetTimer();
+  hasRecording = false;
+  isRecording = false;
+
+  document.getElementById('playback-section').classList.remove('visible');
+  document.getElementById('submit-section').classList.remove('visible');
+  document.getElementById('audio-playback').src = '';
+  document.getElementById('recorder-status').textContent = 'Press record when you\'re ready';
+  document.getElementById('record-label').textContent = 'Start Recording';
+  document.getElementById('record-btn').classList.remove('recording');
+  document.getElementById('waveform').classList.remove('active');
+}
+
+// ── Submit (placeholder) ─────────────────────────────────────────────────────
+function submitAnswer() {
+  if (!hasRecording) return;
+  alert('Answer submitted!\n\n(AI feedback will be wired up here.)');
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+loadQuestion();
+updateTimer(TOTAL_SECS);
+</script>
+</body>
+</html>

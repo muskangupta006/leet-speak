@@ -775,6 +775,34 @@ function updateCounts() {
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
+const CAT_BG = {
+  leadership: 'var(--amber-bg)', teamwork: 'var(--green-bg)',
+  problem_solving: 'var(--coral-bg)', communication: 'var(--purple-bg)',
+  adaptability: 'var(--cyan-bg)', time_management: 'var(--teal-bg)',
+  initiative: 'var(--orange-bg)', conflict_resolution: 'var(--pink-bg)',
+  achievement: 'var(--amber-bg)', failure: 'var(--coral-bg)'
+};
+const CAT_COLOR = {
+  leadership: 'var(--amber)', teamwork: 'var(--green)',
+  problem_solving: 'var(--coral)', communication: 'var(--purple)',
+  adaptability: 'var(--cyan)', time_management: 'var(--teal)',
+  initiative: 'var(--orange)', conflict_resolution: 'var(--pink)',
+  achievement: 'var(--amber)', failure: 'var(--coral)'
+};
+const CAT_LABELS = {
+  all:                 'All questions',
+  leadership:          'Leadership',
+  teamwork:            'Teamwork',
+  problem_solving:     'Problem Solving',
+  communication:       'Communication',
+  adaptability:        'Adaptability',
+  time_management:     'Time Management',
+  initiative:          'Initiative',
+  conflict_resolution: 'Conflict Resolution',
+  achievement:         'Achievement',
+  failure:             'Failure & Growth'
+};
+
 function renderQuestions() {
   const grid = document.getElementById('question-grid');
   const filtered = getFiltered();
@@ -794,7 +822,7 @@ function renderQuestions() {
       <div class="q-body">
         <div class="q-text">${q.text}</div>
         <div class="q-tags">
-          <span class="q-tag" style="background:var(--surface3);color:var(--muted)">${q.cat}</span>
+          <span class="q-tag" style="background:${CAT_BG[q.cat]};color:${CAT_COLOR[q.cat]}">${CAT_LABELS[q.cat] || q.cat}</span>
         </div>
       </div>
       <div class="q-right">
@@ -885,11 +913,10 @@ function saveResume() {
 // ── Start practice ───────────────────────────────────────────────────────────
 function startPractice() {
   if (!selectedQuestion) return;
+
   localStorage.setItem('selectedQuestion', JSON.stringify(selectedQuestion));
   localStorage.setItem('resumeText', resumeText);
-  // Wire this to your practice screen when ready:
-  // window.location.href = 'practice.html';
-  alert('Ready to practice!\n\n"' + selectedQuestion.text + '"\n\n(Connect this to your practice screen when ready.)');
+  window.location.href = "practice.html";
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
