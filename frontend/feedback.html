@@ -355,6 +355,23 @@
       .page { padding: 32px 16px 60px; }
       .score-row { grid-template-columns: 1fr; }
     }
+    .listen-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 12px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border2);
+        background: var(--surface3);
+        color: var(--text);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        }
+    .listen-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .listen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -409,6 +426,45 @@
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
+    }
+    async function listenToAnswer() {
+        const analysis = JSON.parse(localStorage.getItem('latestAnalysis') || 'null');
+        if (!analysis?.improved_script) return;
+
+        const btn = document.getElementById('listen-btn');
+        const statusEl = document.getElementById('tts-status');
+        const audioEl = document.getElementById('tts-audio');
+
+        btn.disabled = true;
+        btn.textContent = 'Generating audio...';
+        statusEl.textContent = 'Calling ElevenLabs...';
+
+        try {
+            const res = await fetch('http://localhost:5002/text-to-speech', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: analysis.improved_script }),
+            });
+            if (!res.ok) throw new Error('TTS request failed: ' + res.status);
+
+            const data = await res.json();
+            const binary = atob(data.audio);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const blob = new Blob([bytes], { type: 'audio/mpeg' });
+            audioEl.src = URL.createObjectURL(blob);
+            audioEl.style.display = 'block';
+            audioEl.play();
+
+            btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="3,2 10,6 3,10"/></svg> Play again`;
+            btn.disabled = false;
+            btn.onclick = () => audioEl.play();
+            statusEl.textContent = '';
+        } catch (err) {
+            statusEl.textContent = 'Error: ' + err.message;
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="3,2 10,6 3,10"/></svg> Listen to improved answer`;
+        }
     }
 
     function loadFeedback() {
@@ -510,10 +566,17 @@
                 </div>
               </div>
 
-              <div class="analysis-block">
+            <div class="analysis-block">
                 <div class="analysis-label">Improved Answer</div>
                 <div class="improved-script">${escapeHtml(analysis.improved_script || '')}</div>
-              </div>
+                <button class="listen-btn" id="listen-btn" onclick="listenToAnswer()">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                    <polygon points="3,2 10,6 3,10"/>
+                    </svg>
+                    Listen to improved answer
+                </button>
+                <audio id="tts-audio" style="width:100%;margin-top:10px;display:none;" controls></audio>
+                <div id="tts-status" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:6px;"></div>
             </div>
           </div>
         </div>

@@ -796,10 +796,13 @@ async function submitAnswer() {
     // 3. Save to localStorage so feedback.html can read it
     localStorage.setItem('latestTranscript', latestTranscript);
     localStorage.setItem('latestAnalysis', JSON.stringify(analysisResult));
-    localStorage.setItem('latestAudioURL', document.getElementById('audio-playback').src);
-
-    // 4. Go to feedback page
-    window.location.href = 'feedback.html';
+    // Convert blob to base64 so it survives page navigation
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        localStorage.setItem('latestAudioURL', reader.result);
+        window.location.href = 'feedback.html';
+    };
+    reader.readAsDataURL(window.lastAudioBlob);
 
   } catch (err) {
     console.error(err);
