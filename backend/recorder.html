@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>Audio Recorder Test</h2>
+
+    <button onclick="start()">Start Recording</button>
+    <button onclick="stop()">Stop Recording</button>
+
+    <script>
+      let recorder, chunks = [];
+
+      async function start() {
+        chunks = []; // reset
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        recorder = new MediaRecorder(stream, {
+          mimeType: "audio/webm;codecs=opus"
+        });
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "test.webm";
+          a.click();
+        };
+
+        recorder.start();
+        console.log("Recording started");
+      }
+
+      function stop() {
+        recorder.stop();
+        console.log("Recording stopped");
+      }
+    </script>
+  </body>
+</html>
